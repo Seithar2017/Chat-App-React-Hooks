@@ -13,7 +13,8 @@ const Register = () => {
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
     const [errors, setErrors] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [usersRef, setUsersRef] = useState(firebase.database().ref('users'));
+    
+    const userDatabaseRef = firebase.database().ref('users');
 
     const isFormEmpty = () => {
         return !username || !email || !password || !passwordConfirmation;
@@ -69,28 +70,25 @@ const Register = () => {
                 .auth()
                 .createUserWithEmailAndPassword(email, password)
                 .then(createdUser => {
-                    console.log(createdUser);
                     createdUser.user.updateProfile({
                         displayName: username,
                         photoURL: `http://gravatar.com/avatar/${md5(createdUser.user.email)}?d=monsterid`
                     })
                     .then(()=>{
                     //    setLoading(false);
+                    debugger;
                     saveUser(createdUser)
                     .then(()=>{
-                        console.log('user saved');
                         setLoading(false)
                         
                     })
                     
                     })
                     .catch(err => {
-                        console.error(err);
                         setErrors(prevValue => prevValue.concat(err));
                     })
                 })
                 .catch(err => {
-                    console.log(err);
                     setLoading(false);
                     setErrors(prevValue => prevValue.concat(err));
             })
@@ -105,7 +103,8 @@ const Register = () => {
     }
 
     const saveUser = (createdUser) =>{
-        return usersRef.child(createdUser.user.uid).set({
+        debugger;
+        return userDatabaseRef.child(createdUser.user.uid).set({
             name: createdUser.user.displayName,
             avatar: createdUser.user.photoURL
         });
