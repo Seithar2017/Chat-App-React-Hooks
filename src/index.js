@@ -7,20 +7,21 @@ import registerServiceWorker from './registerServiceWorker';
 import {BrowserRouter as Router, Switch, Route, withRouter, useHistory } from 'react-router-dom';
 import 'semantic-ui-css/semantic.min.css'
 import firebase from './firebase';
-
 import {createStore} from 'redux';
-import {Provider, useDispatch} from 'react-redux';
+import {Provider, useDispatch, useSelector} from 'react-redux';
 import {composeWithDevTools} from 'redux-devtools-extension'
 import rootReducer from './reducers/';
 import {setUser} from './actions';
+import Spinner from './Spinner';
 
 const store = createStore(rootReducer, composeWithDevTools());
 const Root = () => {
-    
     const dispatch = useDispatch();
     const history = useHistory();
+    const isLoading = useSelector(store=> store.user.isLoading);
     
     useEffect(()=>{
+        console.log(isLoading);
         firebase.auth().onAuthStateChanged(user => {
             if(user){
                 dispatch(setUser(user));
@@ -31,8 +32,7 @@ const Root = () => {
             }
         })
     }, []);
-
-    return (
+    return isLoading ? <Spinner /> : (
         
         <Switch>
             <Route exact path="/" component = {App} />
