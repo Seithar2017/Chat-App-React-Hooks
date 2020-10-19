@@ -11,7 +11,7 @@ import {createStore} from 'redux';
 import {Provider, useDispatch, useSelector} from 'react-redux';
 import {composeWithDevTools} from 'redux-devtools-extension'
 import rootReducer from './reducers/';
-import {setUser} from './actions';
+import {setUser, clearUser} from './actions';
 import Spinner from './Spinner';
 
 const store = createStore(rootReducer, composeWithDevTools());
@@ -30,10 +30,17 @@ const Root = () => {
                 }
                 history.push(location);
             }
+            else{
+                dispatch(clearUser());
+                // const location = {
+                //     pathname: "/login"
+                // }
+                // history.push(location);
+            }
         })
     }, []);
     return isLoading ? <Spinner /> : (
-        
+        // return (
         <Switch>
             <Route exact path="/" component = {App} />
             <Route path="/Login" component = {Login} />
