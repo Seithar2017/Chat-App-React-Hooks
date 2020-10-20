@@ -1,13 +1,18 @@
 import React from 'react';
-import {Grid, Header, Icon, Dropdown} from 'semantic-ui-react';
+import {Grid, Header, Icon, Dropdown, Image} from 'semantic-ui-react';
 import firebase from '../../firebase';
+import {useSelector} from 'react-redux';
+
 
 const UserPanel = () => {
-
+    const user = useSelector(store => store.user.currentUser);
+    if(!user){
+        return <p>You are currently signed out. Would you like to <a href="http://localhost:3000/login">log in?</a></p>
+    }
     const dropdownOptions = () =>[        
         {
             key: 'user',
-            text: <span>Signed in as <strong>User</strong></span>,
+            text: <span>Signed in as <strong>{user.displayName}</strong></span>,
             disabled: true,
         },
 
@@ -46,9 +51,14 @@ const UserPanel = () => {
 
             {/* User Dropdown */}
             <Header style ={{padding: '0.25em'}} as='h4' inverted>
+            
                 <Dropdown trigger={
-                    <Icon name='user circle' size='big' />
+                   <span>
+                       <Image src={user.photoURL} spaced ='right' avatar/>
+                       {user.displayName}
+                       </span>
                 } options={dropdownOptions()}/>
+                
 
             </Header>
         </Grid.Column>
