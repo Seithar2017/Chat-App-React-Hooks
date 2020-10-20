@@ -1,12 +1,15 @@
-import React, {useState, useEffect} from 'react';
-import {useSelector} from 'react-redux';
+import React, {useState, useEffect, useRef} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
 import {Button, Form, Icon, Input, Menu, Modal } from 'semantic-ui-react';
 import firebase from '../../firebase';
+import {setCurrentChannel} from "../../actions";
 
 const Channels = () => {
     
+    const dispatch = useDispatch();
     const [channels, setChannels] = useState([]);
     const [modal, setModal] = useState(false);
+    const [activeChannel, setActiveChannel] = useState('');
     const [inputsValue, setInputsValue] = useState({
         channelName: "",
         channelDetails: ""
@@ -14,11 +17,24 @@ const Channels = () => {
     const {channelName, channelDetails} = inputsValue;
     const user = useSelector(store => store.user.currentUser);
     const channelsDatabaseRef = firebase.database().ref('channels');
+    const isChannelInitialized = useRef(false);
+    
     
     useEffect(()=>{
         addListeners();
+
+        return () => {
+            channelsDatabaseRef.off();
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+
+    useEffect(()=>{
+        if(channels.length>0 && isChannelInitialized.current === false){
+            handleChannelChange(channels[0]);
+            isChannelInitialized.current = true;
+        }
+    }, [channels])
 
     const addListeners = () =>{
         channelsDatabaseRef.on('child_added', snap=>{
@@ -72,17 +88,24 @@ const Channels = () => {
                 addChannel();
             }
     }
+
+
+    const handleChannelChange = (channel) => {
+        dispatch(setCurrentChannel(channel))
+        setActiveChannel(channel.id);
+    }
     const displayChannels = () => {
         if(channels.length>0)
         {
             return channels.map(channel => (
                     <Menu.Item
                     key={channel.id}
-                    onClick = {()=>console.log(channel)}
+                    onClick = {()=>{handleChannelChange(channel)}}
                     name = {channel.name}
                     style = {{opacity: '0.7'}}
+                    active = {channel.id === activeChannel}
                     >
-                        # {channel.name} dupa
+                        # {channel.name}
                     </Menu.Item>)
             )
         }
