@@ -21,7 +21,6 @@ const Root = () => {
     const isLoading = useSelector(store=> store.user.isLoading);
     
     useEffect(()=>{
-        console.log(isLoading);
         firebase.auth().onAuthStateChanged(user => {
             if(user){
                 dispatch(setUser(user));
