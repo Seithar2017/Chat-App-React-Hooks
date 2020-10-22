@@ -3,12 +3,22 @@ import {useSelector} from 'react-redux';
 import {Segment, Button, Input} from 'semantic-ui-react';
 import firebase from '../../firebase';
 
+import FileModal from "./FileModal";
+
 const MessageForm = ({messagesDbRef}) => {
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const user = useSelector(store=> store.user.currentUser);
-    const channel = useSelector(store=>store.channel.currentChannel);
     const [errors, setErrors] = useState([]);
+    const [modal, setModal] = useState(false);
+
+    const user = useSelector(store=> store.user.currentUser);
+
+    const channel = useSelector(store=>store.channel.currentChannel);
+
+    const openModal = () => setModal(true);
+    const closeModal = () => setModal(false);
+
+
     const handleChange = (e) => {
         setMessage(e.target.value)
     }
@@ -74,10 +84,15 @@ const MessageForm = ({messagesDbRef}) => {
                     icon="edit"
                     />
                     <Button
+                    onClick = {openModal}
                     color="teal"
                     content="Upload Media"
                     labelPosition="right"
                     icon="cloud upload"
+                    />
+                    <FileModal 
+                    modal = {modal}
+                    closeModal = {closeModal}
                     />
                 </Button.Group>
             </Segment>
