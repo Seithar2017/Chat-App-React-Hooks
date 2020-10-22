@@ -14,7 +14,7 @@ const Messages = () => {
     const channel = useSelector(store=>store.channel.currentChannel);
     const user = useSelector(store=>store.user.currentUser)
     const [messages, setMessages] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    // const [isLoading, setIsLoading] = useState(true);
     
     useEffect(()=>{
         if(channel&&user){
@@ -33,7 +33,7 @@ const Messages = () => {
         messagesDatabaseRef.child(channel.id).on('child_added', snap=>{
             loadedMessages.push(snap.val());
             setMessages([...loadedMessages]);
-            setIsLoading(false)
+            // setIsLoading(false)
             
         })
     }
