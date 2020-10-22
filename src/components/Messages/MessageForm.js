@@ -58,6 +58,11 @@ const MessageForm = ({messagesDbRef}) => {
         }
     }
 
+    const uploadFile = (file, metadata) => {
+        console.log(file, metadata);
+        
+    }
+
     return (  
             <Segment className ="message__form">
                 <Input
@@ -93,6 +98,7 @@ const MessageForm = ({messagesDbRef}) => {
                     <FileModal 
                     modal = {modal}
                     closeModal = {closeModal}
+                    uploadFile={uploadFile}
                     />
                 </Button.Group>
             </Segment>
