@@ -7,7 +7,7 @@ import firebase from '../../firebase';
 import FileModal from "./FileModal";
 import ProgressBar from "./ProgressBar"
 
-const MessageForm = ({messagesDbRef}) => {
+const MessageForm = ({messagesDbRef, isProgressBarVisible}) => {
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState([]);
@@ -34,6 +34,7 @@ const MessageForm = ({messagesDbRef}) => {
         const pathToUpload = channel.id;
         uploadTask.on('state_changed', snap => {
             const percentUploaded = Math.round (snap.bytesTransferred /snap.totalBytes *100);
+            isProgressBarVisible(percentUploaded);
             setPercentUploaded(percentUploaded);
         },
         err => {

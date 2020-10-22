@@ -14,6 +14,7 @@ const Messages = () => {
     const channel = useSelector(store=>store.channel.currentChannel);
     const user = useSelector(store=>store.user.currentUser)
     const [messages, setMessages] = useState([]);
+    const [progressBar, setProgressBar] = useState(false);
     // const [isLoading, setIsLoading] = useState(true);
     
     useEffect(()=>{
@@ -55,17 +56,21 @@ const Messages = () => {
     }
     }
 
-   
+   const isProgressBarVisible = percent => {
+       if(percent > 0 && percent < 100) setProgressBar(true);
+       else setProgressBar(false)
+   }
     return (  
         <>
             <MessagesHeader />
             <Segment>
-                <Comment.Group className="messages">
+                <Comment.Group className={progressBar ? "messages__progress" : "messages"}>
                    {displayMessages()}
                 </Comment.Group>
             </Segment>
             <MessageForm
             messagesDbRef = {messagesDatabaseRef}
+            isProgressBarVisible ={isProgressBarVisible}
             />
         </>
     );
