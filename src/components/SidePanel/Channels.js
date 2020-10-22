@@ -34,6 +34,7 @@ const Channels = () => {
             handleChannelChange(channels[0]);
             isChannelInitialized.current = true;
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [channels])
 
     const addListeners = () =>{

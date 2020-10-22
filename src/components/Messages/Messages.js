@@ -23,6 +23,7 @@ const Messages = () => {
         return () => {
             messagesDatabaseRef.off();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [channel, user])
 
     const addMessageListener = () => {
