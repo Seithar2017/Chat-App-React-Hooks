@@ -1,15 +1,23 @@
-import React,{useState} from 'react';
+import React,{useState, useEffect, useRef} from 'react';
+import { v4 as uuidv4 } from 'uuid'
 import {useSelector} from 'react-redux';
 import {Segment, Button, Input} from 'semantic-ui-react';
 import firebase from '../../firebase';
 
 import FileModal from "./FileModal";
+import ProgressBar from "./ProgressBar"
 
 const MessageForm = ({messagesDbRef}) => {
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState([]);
     const [modal, setModal] = useState(false);
+    const [uploadState, setUploadState] = useState('')
+    const [percentUploaded, setPercentUploaded] = useState(0);
+    const [uploadTask, setUploadTask] = useState(null);
+    const isInitialMount = useRef(true);
+    
+    const storageRef = firebase.storage().ref();
 
     const user = useSelector(store=> store.user.currentUser);
 
@@ -18,11 +26,53 @@ const MessageForm = ({messagesDbRef}) => {
     const openModal = () => setModal(true);
     const closeModal = () => setModal(false);
 
+    useEffect(()=>{
+        if(isInitialMount.current){
+            isInitialMount.current = false;
+        }
+        else if(uploadState === 'uploading'){
+        const pathToUpload = channel.id;
+        uploadTask.on('state_changed', snap => {
+            const percentUploaded = Math.round (snap.bytesTransferred /snap.totalBytes *100);
+            setPercentUploaded(percentUploaded);
+        },
+        err => {
+            console.error(err);
+            setErrors(prevValue => prevValue.concat(err));
+            setUploadState('error');
+            setUploadTask(null);
+        },
+        ()=>{
+            uploadTask.snapshot.ref.getDownloadURL()
+            .then(downloadUrl => {
+                sendFileMessage(downloadUrl, messagesDbRef, pathToUpload);
+            })
+            .catch(err=>{
+                console.error(err);
+                setErrors(prevValue => prevValue.concat(err));
+                setUploadState('error');
+                setUploadTask(null);
+            })
+        }
+        )}
+    }, [uploadState, uploadTask])
 
+    const sendFileMessage = (fileUrl, messagesDbRef, pathToUpload) => {
+        messagesDbRef.child(pathToUpload)
+        .push()
+        .set(createMessage(fileUrl))
+        .then(()=>{
+            setUploadState('done');
+        })
+        .catch(err=>{
+            console.error(err);
+            setErrors(prevValue => prevValue.concat(err));
+        })
+    }
     const handleChange = (e) => {
         setMessage(e.target.value)
     }
-    const createMessage = () => {
+    const createMessage = (fileUrl = null) => {
         const msg = {
             timestamp: firebase.database.ServerValue.TIMESTAMP,
             user: {
@@ -30,9 +80,14 @@ const MessageForm = ({messagesDbRef}) => {
                 avatar: user.photoURL,
                 name: user.displayName,
             },
-            content: message,
+            
         }
-
+        if(fileUrl !== null){
+            msg['image'] = fileUrl; //msg.image = fileUrl
+        }
+        else{
+            msg['content'] = message; //msg.content = message
+        }
         return msg;
     }
     const sendMessage = () => {
@@ -59,8 +114,11 @@ const MessageForm = ({messagesDbRef}) => {
     }
 
     const uploadFile = (file, metadata) => {
-        console.log(file, metadata);
+        const filePath = `chat/public/${uuidv4()}.jpg`;
+        console.log(file, metadata, "file, metedata");
         
+        setUploadState('uploading');
+        setUploadTask(storageRef.child(filePath).put(file, metadata));
     }
 
     return (  
@@ -95,12 +153,16 @@ const MessageForm = ({messagesDbRef}) => {
                     labelPosition="right"
                     icon="cloud upload"
                     />
-                    <FileModal 
+                </Button.Group>
+                <FileModal 
                     modal = {modal}
                     closeModal = {closeModal}
                     uploadFile={uploadFile}
-                    />
-                </Button.Group>
+                />
+                <ProgressBar
+                uploadState = {uploadState}
+                percentUploaded = {percentUploaded}
+                />
             </Segment>
     );
 }
