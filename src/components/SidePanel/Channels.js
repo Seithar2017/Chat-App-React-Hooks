@@ -115,7 +115,7 @@ const Channels = () => {
 
     return ( 
         <>
-            <Menu.Menu style = {{paddingBottom: '2em'}}>
+            <Menu.Menu className = "menu">
                 <Menu.Item>
                     <span>
                         <Icon name="exchange"/> CHANNELS 
