@@ -15,6 +15,7 @@ const Messages = () => {
     const user = useSelector(store=>store.user.currentUser)
     const [messages, setMessages] = useState([]);
     const [progressBar, setProgressBar] = useState(false);
+    const [uniqueUsers, setUniqueUsers] = useState([])
     // const [isLoading, setIsLoading] = useState(true);
     
     useEffect(()=>{
@@ -29,15 +30,29 @@ const Messages = () => {
 
     const addMessageListener = () => {
         setMessages([]); // clears messages in case current channel database is empty, as it's not gonna go inside snap callback block nor clear messages saved on previous channel
+        setUniqueUsers([]) //same as setMessages
 
         let loadedMessages = [];
         messagesDatabaseRef.child(channel.id).on('child_added', snap=>{
             loadedMessages.push(snap.val());
             setMessages([...loadedMessages]);
             // setIsLoading(false)
-            
+            countUniqueUsers(loadedMessages);
         })
+        
     }
+
+    const countUniqueUsers = (messages) => {
+        const uniqueUsers = [];
+        messages.map(message => {
+            if(!uniqueUsers.includes(message.user.name)){
+                uniqueUsers.push(message.user.name);
+            }
+        })
+        setUniqueUsers(uniqueUsers);
+    }
+    
+    
 
     const addListeners = () => {
         addMessageListener();
@@ -60,9 +75,14 @@ const Messages = () => {
        if(percent > 0 && percent < 100) setProgressBar(true);
        else setProgressBar(false)
    }
+
+   const displayChannelName = () => channel ? `#${channel.name}` : '';
     return (  
         <>
-            <MessagesHeader />
+            <MessagesHeader 
+            channelName = {displayChannelName()}
+            numberOfUniqueUsers = {uniqueUsers.length}
+            />
             <Segment>
                 <Comment.Group className={progressBar ? "messages__progress" : "messages"}>
                    {displayMessages()}
