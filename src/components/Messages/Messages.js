@@ -16,6 +16,9 @@ const Messages = () => {
     const [messages, setMessages] = useState([]);
     const [progressBar, setProgressBar] = useState(false);
     const [uniqueUsers, setUniqueUsers] = useState([])
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [searchResults, setSearchResults] = useState([]);
     // const [isLoading, setIsLoading] = useState(true);
     
     useEffect(()=>{
@@ -28,10 +31,27 @@ const Messages = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [channel, user])
 
+
+    useEffect(()=>{
+        setSearchResults([]);
+    },[channel])
+    
+    useEffect(()=>{
+        const channelMessages = [...messages];
+        const regex = new RegExp(searchTerm, 'gi');
+        const searchResults = channelMessages.reduce((acc, message) =>{
+            if(message.content && message.content.match(regex) || message.user.name.match(regex)) {
+                acc.push(message)
+            }
+            return acc;
+        }, []);
+        setSearchResults(searchResults);
+        setTimeout(()=>{setSearchLoading(false)}, 250);
+    }, [searchTerm])
+
     const addMessageListener = () => {
         setMessages([]); // clears messages in case current channel database is empty, as it's not gonna go inside snap callback block nor clear messages saved on previous channel
         setUniqueUsers([]) //same as setMessages
-
         let loadedMessages = [];
         messagesDatabaseRef.child(channel.id).on('child_added', snap=>{
             loadedMessages.push(snap.val());
@@ -58,7 +78,7 @@ const Messages = () => {
         addMessageListener();
     }
 
-    const displayMessages = () => {
+    const displayMessages = (messages) => {
         if(messages.length > 0){
         const msg = messages.map(message=>{
             return <Message
@@ -77,15 +97,23 @@ const Messages = () => {
    }
 
    const displayChannelName = () => channel ? `#${channel.name}` : '';
+   const handleSearchChange = e => {
+       setSearchTerm(e.target.value);
+       setSearchLoading(true);
+    }
     return (  
         <>
             <MessagesHeader 
             channelName = {displayChannelName()}
             numberOfUniqueUsers = {uniqueUsers.length}
+            handleChange = {handleSearchChange}
+            search = {searchTerm}
+            searchLoading={searchLoading}
             />
             <Segment>
                 <Comment.Group className={progressBar ? "messages__progress" : "messages"}>
-                   {displayMessages()}
+                   {searchTerm ? displayMessages(searchResults) : displayMessages(messages)}
+                   {/* {displayMessages(messages)} */}
                 </Comment.Group>
             </Segment>
             <MessageForm
