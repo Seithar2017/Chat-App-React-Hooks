@@ -149,6 +149,7 @@ const MessageForm = ({messagesDbRef, isProgressBarVisible}) => {
                     />
                     <Button
                     onClick = {openModal}
+                    disabled={uploadState === "uploading"}
                     color="teal"
                     content="Upload Media"
                     labelPosition="right"
