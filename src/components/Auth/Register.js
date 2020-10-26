@@ -5,7 +5,6 @@ import {Link} from 'react-router-dom';
 import "../App.css";
 import md5 from 'md5';
 
-
 const Register = () => {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
@@ -13,7 +12,6 @@ const Register = () => {
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
     const [errors, setErrors] = useState([]);
     const [loading, setLoading] = useState(false);
-    
     const userDatabaseRef = firebase.database().ref('users');
 
     const isFormEmpty = () => {
@@ -106,7 +104,8 @@ const Register = () => {
         debugger;
         return userDatabaseRef.child(createdUser.user.uid).set({
             name: createdUser.user.displayName,
-            avatar: createdUser.user.photoURL
+            avatar: createdUser.user.photoURL,
+            uid: createdUser.user.uid
         });
     }
     return (  
