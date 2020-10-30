@@ -17,11 +17,22 @@ export const clearUser = () => {
 }
 
 // Channel Actions
-export const setCurrentChannel = (channel) => {
+export const setCurrentChannel = (channel, isPrivateChannel) => {
     return{
         type: actionTypes.SET_CURRENT_CHANNEL,
         payload: {
             currentChannel: channel,
+            isPrivateChannel,
+        }
+    }
+}
+
+export const setPrivateChannel = (isPrivateChannel, currentChannel) =>{
+    return{
+        type: actionTypes.SET_PRIVATE_CHANNEL,
+        payload: {
+            isPrivateChannel,
+            currentChannel,
         }
     }
 }
