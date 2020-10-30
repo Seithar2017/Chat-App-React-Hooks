@@ -92,7 +92,7 @@ const Channels = () => {
 
 
     const handleChannelChange = (channel) => {
-        dispatch(setCurrentChannel(channel))
+        dispatch(setCurrentChannel(channel, false))
         setActiveChannel(channel.id);
     }
     const displayChannels = () => {
