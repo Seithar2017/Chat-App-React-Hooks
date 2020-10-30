@@ -7,7 +7,7 @@ import firebase from '../../firebase';
 import FileModal from "./FileModal";
 import ProgressBar from "./ProgressBar"
 
-const MessageForm = ({messagesDbRef, isProgressBarVisible}) => {
+const MessageForm = ({isProgressBarVisible, isPrivateChannel, getMessagesRef}) => {
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState([]);
@@ -16,6 +16,7 @@ const MessageForm = ({messagesDbRef, isProgressBarVisible}) => {
     const [percentUploaded, setPercentUploaded] = useState(0);
     const [uploadTask, setUploadTask] = useState(null);
     const isInitialMount = useRef(true);
+    const messagesDbRef = getMessagesRef();
     
     const storageRef = firebase.storage().ref();
 
@@ -76,6 +77,7 @@ const MessageForm = ({messagesDbRef, isProgressBarVisible}) => {
     const createMessage = (fileUrl = null) => {
         const msg = {
             timestamp: firebase.database.ServerValue.TIMESTAMP,
+            onChannel: channel.id,
             user: {
                 id: user.uid,
                 avatar: user.photoURL,
@@ -113,11 +115,16 @@ const MessageForm = ({messagesDbRef, isProgressBarVisible}) => {
             setErrors(errors.concat({message: 'Add a message'}));
         }
     }
-
+    const getPath = () => {
+        if(isPrivateChannel){
+            return `chat/private-${channel.id}`;
+        }
+        else{
+            return 'chat/public';
+        }
+    }
     const uploadFile = (file, metadata) => {
-        const filePath = `chat/public/${uuidv4()}.jpg`;
-        console.log(file, metadata, "file, metedata");
-        
+        const filePath = `${getPath()}/${uuidv4()}.jpg`;
         setUploadState('uploading');
         setUploadTask(storageRef.child(filePath).put(file, metadata));
     }

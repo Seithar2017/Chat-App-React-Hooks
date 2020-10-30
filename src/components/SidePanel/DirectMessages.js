@@ -1,12 +1,15 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import { Menu, Icon} from 'semantic-ui-react';
 import firebase from '../../firebase';
+import {setCurrentChannel, setPrivateChannel} from "../../actions";
 const DirectMessages = () => {
     const currentUser = useSelector(store => store.user.currentUser);
+    const dispatch = useDispatch();
     const [users, setUsers] = useState([]);
     const [lastUser, setLastUser] = useState(null);
     const [readyToListen, setReadyToListen] = useState(false);
+    const [activeChannel, setActiveChannel] = useState(null);
     const usersDbRef = firebase.database().ref('users');
     const connectedRef = firebase.database().ref('.info/connected');
     const presenceDbRef = firebase.database().ref('presence');
@@ -26,11 +29,13 @@ const DirectMessages = () => {
         if(currentUser){
             let loadedUsers = [];
             usersDbRef.on("child_added", snap => {
+                
                 let user = snap.val();
                 user["uid"] = snap.key;
                 user["status"] = "offline";
                 loadedUsers.push(user);
                 setUsers([...loadedUsers]);
+                
         });
         }
     }, [])
@@ -100,13 +105,31 @@ const DirectMessages = () => {
         return user.status === 'online' ;
     }
 
+    const getChannelId = userId => {
+        const currentUserId = currentUser.uid;
+        console.log(userId<currentUserId);
+        return userId < currentUserId 
+        ? `${userId}/${currentUserId}`
+        : `${currentUserId}/${userId}`
+
+    }
+    const changeChannel = (user) => {
+        const channelId = getChannelId(user.uid);
+        const channelData = {
+            id: channelId,
+            name: user.name,
+        };
+        dispatch(setPrivateChannel(true, channelData));
+        setActiveChannel(user.uid);
+    }
     const displayUsers = () =>{
         return users.map(user => {
             if(user.uid!==currentUser.uid) return (
             <Menu.Item
             key={user.uid}
-            onClick = {()=>{console.log(user)}}
+            onClick = {()=>changeChannel(user)}
             style={{opacity: 0.7, fontStyle: 'italic'}}
+            active = {user.uid === activeChannel}
             
             >
                 <Icon
@@ -124,7 +147,7 @@ const DirectMessages = () => {
                 <span>
                     <Icon name = "mail" /> DIRECT MESSAGES
                 </span>
-                ({users.length})
+                ({users.length - 1})
             </Menu.Item>
             {displayUsers()}
         </Menu.Menu>
