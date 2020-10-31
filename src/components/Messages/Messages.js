@@ -74,12 +74,10 @@ const Messages = () => {
         //filter method is going to return only one message sent by each user
        const messagesWithUniqueUsers =  messages.filter((message,index,msgs)=>msgs.findIndex(msg=>(msg.user.name === message.user.name))===index);
        
-       
        const uniqueUsersData = [] ;
        messagesWithUniqueUsers.map(message => uniqueUsersData.push({name: message.user.name, onChannel: message.onChannel}));
 
        setUniqueUsers(uniqueUsersData);
-    
     }
     
     
@@ -119,9 +117,7 @@ const Messages = () => {
     const reduceUniqueUsers = (uniqueUsers) => {
         const reducedUsers = [];
         uniqueUsers.map( user => {
-            debugger;
             if(user.onChannel === channel.id){
-                debugger;
                 reducedUsers.push(user.name)
             }
         })
