@@ -2,7 +2,7 @@ import MessagesHeader from "./MessagesHeader";
 import MessageForm from "./MessageForm";
 import Message from './Message';
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {useSelector} from 'react-redux';
 
 import {Segment, Comment} from 'semantic-ui-react';
@@ -12,11 +12,13 @@ import firebase from "../../firebase"
 const Messages = () => {
     const messagesDatabaseRef = firebase.database().ref('messages');
     const privateMessagesDatabaseRef = firebase.database().ref('privateMessages');
-
+    const usersDatabaseRef = firebase.database().ref('users');
     const channel = useSelector(store=>store.channel.currentChannel);
     const privateChannel = useSelector(store => store.channel.isPrivateChannel);
     const user = useSelector(store=>store.user.currentUser);
 
+    const [isChannelStarred, setIsChannelStarred] = useState(false);
+    const didMountRef = useRef(false)
     const [messages, setMessages] = useState([]);
     const [progressBar, setProgressBar] = useState(false);
     const [uniqueUsers, setUniqueUsers] = useState([])
@@ -24,9 +26,43 @@ const Messages = () => {
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     
+
+    useEffect(()=>{
+        if(didMountRef.current){
+            if(isChannelStarred){
+                usersDatabaseRef
+                .child(`${user.uid}/starred`).update({
+                    [channel.id]: {
+                        name: channel.name,
+                        details: channel.details,
+                        createdBy: {
+                            name: channel.createdBy.name,
+                            avatar: channel.createdBy.avatar,
+                        }
+                    }
+                })
+            }
+            else{
+                usersDatabaseRef
+                .child(`${user.uid}/starred`)
+                .child(channel.id)
+                .remove(err=>{
+                    if(err!== null) {
+                        console.error(err);
+                    }
+                })
+            }
+        
+    }
+        else{
+            didMountRef.current = true;
+    }
+    }, [isChannelStarred])
+
     useEffect(()=>{
         if(channel&&user){
-            addListeners()
+            addListeners();
+            addUserStarsListener(channel.id, user.uid);
         }
         return () => {
             messagesDatabaseRef.off();
@@ -52,10 +88,25 @@ const Messages = () => {
         setTimeout(()=>{setSearchLoading(false)}, 250);
     }, [searchTerm])
 
+    const handleStar = () => setIsChannelStarred(prevState => !prevState);
+
     const getMessagesRef = () => {
         return privateChannel ? privateMessagesDatabaseRef : messagesDatabaseRef;
     }
 
+    const addUserStarsListener = (channelId, userId) => {
+        usersDatabaseRef
+            .child(userId)
+            .child('starred')
+            .once('value')
+            .then(data => {
+                if(data.val() !== null){
+                    const channelIds = Object.keys(data.val());
+                    const prevStarred = channelIds.includes(channelId);
+                    setIsChannelStarred(prevStarred);
+                }
+            })
+    }
     const addMessageListener = () => {
         setMessages([]); // clears messages in case current channel database is empty, as it's not gonna go inside snap callback block nor clear messages saved on previous channel
         setUniqueUsers([]) //same as setMessages
@@ -133,6 +184,8 @@ const Messages = () => {
             search = {searchTerm}
             searchLoading={searchLoading}
             isPrivateChannel = {privateChannel}
+            handleStar = {handleStar}
+            isChannelStarred = {isChannelStarred}
             />
             <Segment>
                 <Comment.Group className={progressBar ? "messages__progress" : "messages"}>
