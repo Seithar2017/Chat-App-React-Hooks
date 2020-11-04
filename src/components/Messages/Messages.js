@@ -2,14 +2,17 @@ import MessagesHeader from "./MessagesHeader";
 import MessageForm from "./MessageForm";
 import Message from './Message';
 
+import {setUserPosts} from '../../actions/'
+
 import React, {useState, useEffect, useRef} from 'react';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {Segment, Comment} from 'semantic-ui-react';
 
 import firebase from "../../firebase"
 
 const Messages = () => {
+    const dispatch = useDispatch();
     const messagesDatabaseRef = firebase.database().ref('messages');
     const privateMessagesDatabaseRef = firebase.database().ref('privateMessages');
     const usersDatabaseRef = firebase.database().ref('users');
@@ -107,6 +110,24 @@ const Messages = () => {
                 }
             })
     }
+
+    const countUserPosts = (messages) =>{
+        let userPosts = messages.reduce((acc, message)=>{
+            if(message.user.name in acc){
+                acc[message.user.name].count +=1;
+            }
+            else{
+                acc[message.user.name] = {
+                    avatar: message.user.avatar,
+                    count: 1
+                }
+            }
+            return acc;
+        }, {});
+        dispatch(setUserPosts(userPosts));
+        
+    }
+
     const addMessageListener = () => {
         setMessages([]); // clears messages in case current channel database is empty, as it's not gonna go inside snap callback block nor clear messages saved on previous channel
         setUniqueUsers([]) //same as setMessages
@@ -116,6 +137,7 @@ const Messages = () => {
             loadedMessages.push(snap.val());
             setMessages([...loadedMessages]); 
             countUniqueUsers(loadedMessages);
+            countUserPosts(loadedMessages);
         })
         
     }
