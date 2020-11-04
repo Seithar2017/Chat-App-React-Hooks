@@ -107,7 +107,6 @@ const DirectMessages = () => {
 
     const getChannelId = userId => {
         const currentUserId = currentUser.uid;
-        console.log(userId<currentUserId);
         return userId < currentUserId 
         ? `${userId}/${currentUserId}`
         : `${currentUserId}/${userId}`

@@ -1,8 +1,71 @@
-import React from 'react';  
-
+import React, {useState} from 'react';  
+import {Segment, Accordion, Header, Icon, Image} from 'semantic-ui-react';
+import {useSelector} from 'react-redux';
 const MetaPanel = () => {
-    return ( 
-        <div>MetaPanel</div>
+    const [activeIndex, setActiveIndex] = useState(0);
+    const isPrivateChannel = useSelector(store => store.channel.isPrivateChannel);
+    const currentChannel = useSelector(store => store.channel.currentChannel);
+    const handleSetActiveIndex = (event, titleProps) => {
+        const {index} = titleProps;
+        const newIndex = activeIndex === index ? -1 : index;
+        setActiveIndex(newIndex);
+    }
+    return !isPrivateChannel && ( 
+        
+        <Segment loading = {!currentChannel}>
+
+            {/* Channel name */}
+            <Header as = 'h3' attached="top">
+                About # {currentChannel && currentChannel.name}
+            </Header>
+
+            <Accordion styled attached = "true">
+
+                {/* Channel Details */}
+                <Accordion.Title
+                    active = {activeIndex === 0}
+                    index = {0}
+                    onClick = {handleSetActiveIndex}
+                >
+                    <Icon name = 'dropdown'/>
+                    <Icon name = "info"/>
+                    Channel Details
+                </Accordion.Title>
+                <Accordion.Content active = {activeIndex === 0}>
+                    {currentChannel && currentChannel.details}
+                </Accordion.Content>
+
+                {/* Channel Posters*/}
+                <Accordion.Title
+                    active = {activeIndex === 1}
+                    index = {1}
+                    onClick = {handleSetActiveIndex}
+                >
+                    <Icon name = 'dropdown'/>
+                    <Icon name = "user circle"/>
+                </Accordion.Title>
+                <Accordion.Content active = {activeIndex === 1}>
+                    posters
+                </Accordion.Content>
+
+                {/* Channel Created By*/}
+                <Accordion.Title
+                    active = {activeIndex === 2}
+                    index = {2}
+                    onClick = {handleSetActiveIndex}
+                >
+                    <Icon name = 'dropdown'/>
+                    <Icon name = "pencil alternate"/>
+                    Created By
+                </Accordion.Title>
+                <Accordion.Content active = {activeIndex === 2}>
+                    <Header as="h3">
+                        <Image circular src={currentChannel && currentChannel.createdBy.avatar}/>
+                         {currentChannel && currentChannel.createdBy.name}
+                    </Header>
+                </Accordion.Content>
+            </Accordion>
+        </Segment>
      );
 }
  
