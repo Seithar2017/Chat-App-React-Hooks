@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
 import {Sidebar, Menu, Divider, Button, Modal, Icon, Label, Segment} from 'semantic-ui-react';
 import {SliderPicker} from 'react-color';
+import {useSelector} from 'react-redux';
+import firebase from '../../firebase';
 
 const ColorPanel = () => {
 
@@ -9,7 +11,31 @@ const ColorPanel = () => {
     const [secondary, setSecondary] = useState('#40bfbe');
     const openModal = () => setModal(true);
     const closeModal = () => setModal(false);
+    const usersDbRef = firebase.database().ref('users');
+    const currentUser = useSelector(store=> store.user.currentUser);
 
+    const saveColors = () => {
+        usersDbRef
+            .child(`${currentUser.uid}/colors`)
+            .push()
+            .update({
+                primary,
+                secondary
+            })
+            .then(() => {
+                console.log('colors added');
+                closeModal();
+            })
+            .catch(err => console.error(err));
+    }
+
+    const handleSaveColors = () => {
+        if(primary&&secondary){
+            saveColors(primary, secondary)
+        }
+    }
+
+   
     const handleChangePrimary = (color) => {
             setPrimary(color.hex)
     }
@@ -52,7 +78,7 @@ const ColorPanel = () => {
                 </Modal.Content>
 
                 <Modal.Actions>
-                    <Button color="green" inverted>
+                    <Button color="green" inverted onClick = {handleSaveColors}>
                         <Icon name="checkmark"/>Save colors
                     </Button>
                     
