@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {Grid, Header, Icon, Dropdown, Image, Input,  Modal, Button} from 'semantic-ui-react';
 import firebase from '../../firebase';
 import {useSelector} from 'react-redux';
@@ -11,7 +11,48 @@ const UserPanel = () => {
     const [previewImage, setPreviewImage] = useState('');
     const [croppedImage, setCroppedImage] = useState('');
     const [blob, setBlob] = useState('');
+    const [uploadedCroppedImage, setUploadedCroppedImage] = useState('');
+    const [metadata, setMetadata] = useState({
+        contentType: 'image/jpeg'
+    })
     const avatarEditor = useRef(null);
+    const storageRef = firebase.storage().ref();
+    const userRef = firebase.auth().currentUser;
+    const usersDbRef = firebase.database().ref('users');
+
+    useEffect(()=>{
+            debugger;        
+        if(uploadedCroppedImage){
+            debugger;
+            changeAvatar();
+        }
+    }, [uploadedCroppedImage])
+
+    const changeAvatar = () => {
+        userRef
+            .updateProfile({
+                photoURL: uploadedCroppedImage
+            })
+            .then(()=>{
+                console.log('PhotoURL updated');
+                closeModal();
+            })
+            .catch(err=>{
+                console.error(err);
+                
+            })
+
+        usersDbRef
+        .child(user.uid)
+        .update({avatar: uploadedCroppedImage})
+        .then(()=>{
+            console.log('User avatar updated');
+        })
+        .catch(err => {
+            console.error(err);
+            
+        })
+    }
     if(!user){
         return <p>You are currently signed out. Would you like to <a href="http://localhost:3000/login">log in?</a></p>
     }
@@ -74,6 +115,19 @@ const UserPanel = () => {
                 debugger;
             })
         }
+    }
+
+    const uploadCroppedImage = () => {
+        storageRef
+            .child(`avatars/user-${userRef.uid}`)
+            .put(blob, metadata)
+            .then(snap => {
+                snap.ref.getDownloadURL().then(downloadURL => {
+                    setUploadedCroppedImage(downloadURL)
+                })
+
+            })
+
     }
     return (
         <Grid style ={{background: colors.primaryColor}}>
@@ -148,7 +202,7 @@ const UserPanel = () => {
 
                 <Modal.Actions>
                     {croppedImage && (
-                    <Button color = "green" inverted>
+                    <Button color = "green" inverted onClick = {uploadCroppedImage}>
                         <Icon name = "save" /> Change Avatar
                     </Button>
                     )}
