@@ -6,6 +6,7 @@ import {useSelector} from 'react-redux';
 
 const UserPanel = () => {
     const user = useSelector(store => store.user.currentUser);
+    const colors = useSelector(store=>store.colors);
     if(!user){
         return <p>You are currently signed out. Would you like to <a href="http://localhost:3000/login">log in?</a></p>
     }
@@ -37,7 +38,7 @@ const UserPanel = () => {
     }
 
     return (
-        <Grid style ={{background: '#4c3c4c'}}>
+        <Grid style ={{background: colors.primaryColor}}>
         <Grid.Column>
             <Grid.Row style={{padding: '1.2em', margin: 0}}>
                 {/* App Header */}
