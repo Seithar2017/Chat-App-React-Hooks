@@ -1,15 +1,31 @@
-import React from 'react';
-import {Grid, Header, Icon, Dropdown, Image} from 'semantic-ui-react';
+import React, {useState, useRef} from 'react';
+import {Grid, Header, Icon, Dropdown, Image, Input,  Modal, Button} from 'semantic-ui-react';
 import firebase from '../../firebase';
 import {useSelector} from 'react-redux';
-
+import AvatarEditor from 'react-avatar-editor';
 
 const UserPanel = () => {
     const user = useSelector(store => store.user.currentUser);
     const colors = useSelector(store=>store.colors);
+    const [modal, setModal] = useState(false);
+    const [previewImage, setPreviewImage] = useState('');
+    const [croppedImage, setCroppedImage] = useState('');
+    const [blob, setBlob] = useState('');
+    const avatarEditor = useRef(null);
     if(!user){
         return <p>You are currently signed out. Would you like to <a href="http://localhost:3000/login">log in?</a></p>
     }
+
+    const openModal = () => setModal(true);
+    const closeModal = () => {
+        setModal(false)
+        setPreviewImage('');
+        setCroppedImage('');
+        setBlob('');
+
+    };
+    
+
     const dropdownOptions = () =>[        
         {
             key: 'user',
@@ -19,7 +35,7 @@ const UserPanel = () => {
 
         {
             key: 'avatar',
-            text: <span>Change Avatar</span>
+            text: <span onClick = {openModal}>Change Avatar</span>
         },
 
         {
@@ -37,6 +53,28 @@ const UserPanel = () => {
 
     }
 
+    const handleChange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        if(file){
+            reader.readAsDataURL(file);
+            reader.addEventListener('load', () => {
+                setPreviewImage(reader.result);
+            });
+        }
+
+    }
+
+    const handleCropImage = () => {
+        if(avatarEditor.current){
+            avatarEditor.current.getImageScaledToCanvas().toBlob(blob => {
+                let imageUrl = URL.createObjectURL(blob);
+                setCroppedImage(imageUrl);
+                setBlob(blob);
+                debugger;
+            })
+        }
+    }
     return (
         <Grid style ={{background: colors.primaryColor}}>
         <Grid.Column>
@@ -62,6 +100,68 @@ const UserPanel = () => {
                 
 
             </Header>
+
+            {/* Change User Avatar Modal */}
+            <Modal
+                basic
+                open={modal}
+                onClose={closeModal}
+            >
+                <Modal.Header>Change Avatar</Modal.Header>
+                <Modal.Content>
+                    <Input 
+                        onChange={handleChange}
+                        fluid
+                        type="file"
+                        label="New Avatar"
+                        name="previewImage"
+                    />
+                    <Grid centered stackable columns={2}>
+                        <Grid.Row centered>
+                            <Grid.Column className = "ui center aligned grid">
+                                {previewImage && (
+                                    <AvatarEditor
+                                    ref={avatarEditor}
+                                    image = {previewImage}
+                                    width={120}
+                                    height={120}
+                                    border={50}
+                                    scale={1.2}
+                                    />
+
+                                    
+                                )}
+                            </Grid.Column>
+                            <Grid.Column>
+                                {croppedImage && (
+                                    <Image
+                                    style={{margin: '3.5em auto'}}
+                                    width={100}
+                                    height={100}
+                                    src = {croppedImage}
+                                    />
+                                )}
+                            </Grid.Column>
+                        </Grid.Row>
+                    </Grid>
+                </Modal.Content>
+
+                <Modal.Actions>
+                    {croppedImage && (
+                    <Button color = "green" inverted>
+                        <Icon name = "save" /> Change Avatar
+                    </Button>
+                    )}
+
+                    <Button color = "green" inverted onClick={handleCropImage}>
+                        <Icon name = "image" /> Preview
+                    </Button>
+
+                    <Button color = "red" inverted onClick = {closeModal}>
+                        <Icon name = "remove" /> Cancel
+                    </Button>
+                </Modal.Actions>
+            </Modal>
         </Grid.Column>
 
         </Grid>
