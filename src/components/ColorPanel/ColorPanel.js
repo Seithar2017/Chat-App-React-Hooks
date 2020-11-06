@@ -1,11 +1,11 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Sidebar, Menu, Divider, Button, Modal, Icon, Label, Segment} from 'semantic-ui-react';
 import {SliderPicker} from 'react-color';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import firebase from '../../firebase';
-
+import {setColors} from '../../actions'
 const ColorPanel = () => {
-
+    const dispatch = useDispatch();
     const [modal, setModal] = useState(false);
     const [primary, setPrimary] = useState('#40bfbe');
     const [secondary, setSecondary] = useState('#40bfbe');
@@ -13,6 +13,26 @@ const ColorPanel = () => {
     const closeModal = () => setModal(false);
     const usersDbRef = firebase.database().ref('users');
     const currentUser = useSelector(store=> store.user.currentUser);
+    const [userColors, setUserColors] = useState([]);
+
+    useEffect(()=>{
+        
+        if(currentUser){
+        
+            addListener(currentUser.uid);
+        }
+
+    }, [])
+
+    const addListener = userId => {
+        let userColors = [];
+        usersDbRef
+            .child(`${userId}/colors`)
+            .on('child_added', snap => {
+                userColors.unshift(snap.val());
+                setUserColors([...userColors])
+            })
+    }
 
     const saveColors = () => {
         usersDbRef
@@ -23,7 +43,6 @@ const ColorPanel = () => {
                 secondary
             })
             .then(() => {
-                console.log('colors added');
                 closeModal();
             })
             .catch(err => console.error(err));
@@ -43,6 +62,28 @@ const ColorPanel = () => {
     const handleChangeSecondary = (color) => {
             setSecondary(color.hex)
     }
+    const displayUserColors = (colors) => {
+        return colors.length > 0 && colors.map((color, i) => {
+            return(
+            <React.Fragment key={i}>
+                <Divider />
+                <div className="color__container" onClick = {()=>dispatch(setColors(color.primary, color.secondary))}>
+                    <div 
+                    className="color__square" 
+                    style={{background: color.primary}}
+                    >
+                        <div 
+                        className="color__overlay" 
+                        style={{background: color.secondary}}
+                        >
+
+                        </div>
+                    </div>
+                </div>
+            </React.Fragment>
+            )
+        })
+    }
     return (  
         <Sidebar
         as={Menu}
@@ -59,7 +100,7 @@ const ColorPanel = () => {
                 color="blue" 
                 onClick={openModal}
             />
-
+            {displayUserColors(userColors)}
             {/* Color Picker Modal */}
             <Modal basic open = {modal} onClose = {closeModal}>
                 <Modal.Header>
