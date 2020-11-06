@@ -111,14 +111,23 @@ const Messages = () => {
             })
     }
 
+    const getCurrentAvatar = (message) =>{
+        const messageUserId = message.user.id;
+        let avatar = '';
+        usersDatabaseRef.child(messageUserId).on('value', snap =>{
+            avatar = snap.val().avatar;
+        })
+        return avatar;
+    }
     const countUserPosts = (messages) =>{
         let userPosts = messages.reduce((acc, message)=>{
             if(message.user.name in acc){
                 acc[message.user.name].count +=1;
             }
             else{
+                    
                 acc[message.user.name] = {
-                    avatar: message.user.avatar,
+                    avatar: getCurrentAvatar(message),
                     count: 1
                 }
             }
@@ -161,17 +170,20 @@ const Messages = () => {
 
     const displayMessages = (messages) => {
         if(messages.length > 0 ){
-        const msg = messages.map(message=>{
-            if(message.onChannel === channel.id){
-            return <Message
-            key={message.timestamp}
-            message = {message}
-            user={user}
-            />
+            const msg = messages.map(message=>{
+                if(message.onChannel === channel.id){
+                    return (
+                        <Message
+                            key={message.timestamp}
+                            message = {message}
+                            user={user}
+                            avatar = {getCurrentAvatar(message)}
+                        />
+                    )
+                }   
+            })
+            return msg;
         }
-        })
-        return msg;
-    }
     }
 
    const isProgressBarVisible = percent => {
