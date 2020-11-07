@@ -17,7 +17,7 @@ const MessageForm = ({isProgressBarVisible, isPrivateChannel, getMessagesRef}) =
     const [uploadTask, setUploadTask] = useState(null);
     const isInitialMount = useRef(true);
     const messagesDbRef = getMessagesRef();
-    
+    const typingDbRef = firebase.database().ref('typing');
     const storageRef = firebase.storage().ref();
 
     const user = useSelector(store=> store.user.currentUser);
@@ -104,6 +104,7 @@ const MessageForm = ({isProgressBarVisible, isPrivateChannel, getMessagesRef}) =
                 setIsLoading(false)
                 setMessage('');
                 setErrors([]);
+                clearTyping(channel.id, user.uid);
             })
             .catch(err=>{
                 console.error(err);
@@ -128,11 +129,32 @@ const MessageForm = ({isProgressBarVisible, isPrivateChannel, getMessagesRef}) =
         setUploadState('uploading');
         setUploadTask(storageRef.child(filePath).put(file, metadata));
     }
+    const setUpTyping = (channel, user) => {
+        return typingDbRef
+                .child(channel.id)
+                .child(user.uid)
+                .set(user.displayName)
+    }
+    const clearTyping = (channelId, userId) => {
+        return typingDbRef
+            .child(channelId)
+            .child(userId)
+            .remove();
+    }
+    const handleKeyUp = () =>{
+        if(message){
+            setUpTyping(channel, user);
+        }
+        else {
+            clearTyping(channel.id, user.uid);
+        }
+    }
 
     return (  
             <Segment className ="message__form">
                 <Input
                 onChange = {handleChange}
+                onKeyUp = {handleKeyUp}
                 value={message}
                 fluid
                 name="message"

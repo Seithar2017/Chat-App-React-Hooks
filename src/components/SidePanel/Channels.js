@@ -21,6 +21,7 @@ const Channels = () => {
     const user = useSelector(store => store.user.currentUser);
     const channelsDatabaseRef = firebase.database().ref('channels');
     const messagesDatabaseRef = firebase.database().ref('messages')
+    const typingDbRef = firebase.database().ref('typing');
     const isChannelInitialized = useRef(false);
     
     useEffect(()=>{
@@ -44,12 +45,12 @@ const Channels = () => {
     }, [channels])
 
 
-    const setChannel = (data) => {
+    const setChannel = (channel) => {
         //This function is implemented here, as listener on firebase database doesn't
         //see the current value of channel's state. It remembers the first seen value instead.
         //The reference to the channel's state helps to avoid the issue.
-        channelRef.current = data;
-        _setChannel(data);
+        channelRef.current = channel;
+        _setChannel(channel);
     }
 
     const handleNotifications = (channelId, currentChannelId, notifications, snap ) =>{
@@ -93,6 +94,8 @@ const Channels = () => {
     
         setNotifications([...notifications]);
     }
+
+
 
     const addNotificationListener = (channelId) => {
     
@@ -174,12 +177,12 @@ const Channels = () => {
     }
 
     const handleChannelChange = (channel) => {
+        //clearTyping must occur before setChannel call, before ID is updated
+        if(channelRef.current) clearTyping(channelRef.current.id, user.uid);
         clearNotifications(channel);
         dispatch(setCurrentChannel(channel, false))
         setActiveChannel(channel.id);
-    
         setChannel(channel);
-        
     }
 
     const getNotificationCount = (channel) =>{
@@ -190,14 +193,12 @@ const Channels = () => {
                 count = notification.count;
             }
         })
-
         if(count>0) return count;
-        
     }
 
     const displayChannels = () => {
-        if(channels.length>0)
-        {
+        if(channels.length>0 && channel)
+        {   
             return channels.map(channel => (
                     <Menu.Item
                     key={channel.id}
@@ -218,6 +219,14 @@ const Channels = () => {
             )
         }
     }
+
+    const clearTyping = (channelId, userId) => {
+        return typingDbRef
+            .child(channelId)
+            .child(userId)
+            .remove();
+    }
+
     const isFormValid = () => inputsValue.channelName && inputsValue.channelDetails;
 
     return ( 
