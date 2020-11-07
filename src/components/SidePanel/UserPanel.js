@@ -20,10 +20,8 @@ const UserPanel = () => {
     const userRef = firebase.auth().currentUser;
     const usersDbRef = firebase.database().ref('users');
 
-    useEffect(()=>{
-            debugger;        
+    useEffect(()=>{     
         if(uploadedCroppedImage){
-            debugger;
             changeAvatar();
         }
     }, [uploadedCroppedImage])
@@ -90,8 +88,6 @@ const UserPanel = () => {
             .auth()
             .signOut()
             .then(()=> console.log('Signed Out!'))
-        
-
     }
 
     const handleChange = e => {
@@ -103,7 +99,6 @@ const UserPanel = () => {
                 setPreviewImage(reader.result);
             });
         }
-
     }
 
     const handleCropImage = () => {
@@ -125,9 +120,7 @@ const UserPanel = () => {
                 snap.ref.getDownloadURL().then(downloadURL => {
                     setUploadedCroppedImage(downloadURL)
                 })
-
             })
-
     }
     return (
         <Grid style ={{background: colors.primaryColor}}>
