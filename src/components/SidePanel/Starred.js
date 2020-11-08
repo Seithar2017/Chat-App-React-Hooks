@@ -10,14 +10,12 @@ const Starred = () => {
     const starredChannelsRef = useRef(starredChannels)
     const [activeChannel, setActiveChannel] = useState('');
     const user = useSelector(store => store.user.currentUser);
+    const currentChannel = useSelector(store => store.channel.currentChannel)
     const usersDbRef = firebase.database().ref('users');
-    
-
+    const typingDbRef = firebase.database().ref('typing');
     useEffect(()=>{
         if(user){
         addListeners(user.uid);
-        // console.log('hello');
-        
     }
     },[])
 
@@ -48,10 +46,18 @@ const Starred = () => {
             })
     }
     const handleChannelChange = (channel) => {
+        //clearTyping must occur before setChannel call, before ID is updated
+        if(currentChannel) clearTyping(currentChannel.id, user.uid);
         dispatch(setCurrentChannel(channel, false))
         setActiveChannel(channel.id);
     }
 
+    const clearTyping = (channelId, userId) => {
+        return typingDbRef
+            .child(channelId)
+            .child(userId)
+            .remove();
+    }
     const displayChannels = (channels) => {
         if(channels.length>0)
         {
