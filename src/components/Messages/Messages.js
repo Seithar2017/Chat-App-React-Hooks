@@ -10,12 +10,14 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Segment, Comment} from 'semantic-ui-react';
 
 import firebase from "../../firebase"
-
+import Typing from "./Typing";
 const Messages = () => {
     const dispatch = useDispatch();
     const messagesDatabaseRef = firebase.database().ref('messages');
     const privateMessagesDatabaseRef = firebase.database().ref('privateMessages');
     const usersDatabaseRef = firebase.database().ref('users');
+    const typingDbRef = firebase.database().ref('typing');
+
     const channel = useSelector(store=>store.channel.currentChannel);
     const privateChannel = useSelector(store => store.channel.isPrivateChannel);
     const user = useSelector(store=>store.user.currentUser);
@@ -28,8 +30,10 @@ const Messages = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
-    
+    const [typingUsers, setTypingUsers] = useState([]);
+    const connectedRef = firebase.database().ref('.info/connected');
 
+    
     useEffect(()=>{
         if(didMountRef.current){
             if(isChannelStarred){
@@ -163,9 +167,48 @@ const Messages = () => {
     }
     
     
+    const addTypingListener = () => {
+        let typingUsers = [];
+        setTypingUsers([]); // clears typing users after channel change
+        debugger;
+        typingDbRef
+            .child(channel.id).on('child_added', snap=>{
+                if(snap.key !== user.uid){
+                    typingUsers = typingUsers.concat({
+                        id: snap.key,
+                        name: snap.val()
+                    })
+                    setTypingUsers([...typingUsers]);
+                }
+            })
+
+        typingDbRef
+            .child(channel.id).on('child_removed', snap=>{
+                const index = typingUsers.findIndex(user => user.id === snap.key);
+                if (index !== -1){
+                    typingUsers.splice(index, 1);
+                    setTypingUsers([...typingUsers]);
+                }
+            })
+        
+        connectedRef.on('value', snap => {
+            if(snap.val() === true){
+                typingDbRef
+                    .child(channel.id)
+                    .child(user.uid)
+                    .onDisconnect()
+                    .remove(err => {
+                        if(err!==null) console.error(err);
+                    })
+            }
+        })
+
+
+    }
 
     const addListeners = () => {
         addMessageListener();
+        addTypingListener();
     }
 
     const displayMessages = (messages) => {
@@ -209,6 +252,16 @@ const Messages = () => {
 
         return reducedUsers.length;
     }
+
+    const displayTypingUsers = users => {
+        return users.length > 0 && users.map(user =>{
+            return(
+                <div style={{display: 'flex', alignItems: 'center', marginBottom: '0.2em'}} key={user.id}>
+                    <span className="user__typing">{user.name} is typing</span> <Typing />
+                </div>
+            )
+        })
+    }
     return (  
         <>
             <MessagesHeader 
@@ -223,7 +276,10 @@ const Messages = () => {
             />
             <Segment>
                 <Comment.Group className={progressBar ? "messages__progress" : "messages"}>
-                   {searchTerm ? displayMessages(searchResults) : displayMessages(messages)}
+                   {searchTerm 
+                   ? displayMessages(searchResults) 
+                   : displayMessages(messages)}
+                    {displayTypingUsers(typingUsers)}
                 </Comment.Group>
             </Segment>
             <MessageForm

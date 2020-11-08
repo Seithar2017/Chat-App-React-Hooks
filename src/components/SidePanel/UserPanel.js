@@ -107,7 +107,6 @@ const UserPanel = () => {
                 let imageUrl = URL.createObjectURL(blob);
                 setCroppedImage(imageUrl);
                 setBlob(blob);
-                debugger;
             })
         }
     }
