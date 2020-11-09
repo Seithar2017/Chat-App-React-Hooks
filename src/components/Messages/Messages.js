@@ -1,6 +1,7 @@
 import MessagesHeader from "./MessagesHeader";
 import MessageForm from "./MessageForm";
 import Message from './Message';
+import Skeleton from './Skeleton';
 
 import {setUserPosts} from '../../actions/'
 
@@ -11,6 +12,7 @@ import {Segment, Comment} from 'semantic-ui-react';
 
 import firebase from "../../firebase"
 import Typing from "./Typing";
+
 const Messages = () => {
     const dispatch = useDispatch();
     const messagesDatabaseRef = firebase.database().ref('messages');
@@ -31,8 +33,14 @@ const Messages = () => {
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     const [typingUsers, setTypingUsers] = useState([]);
+    const [messagesLoading, setMessagesLoading] = useState([]);
     const connectedRef = firebase.database().ref('.info/connected');
+    const messagesEnd = useRef (null);
 
+    
+    useEffect(()=>{
+        messagesEnd.current.scrollIntoView();
+    },[channel, messages])
     
     useEffect(()=>{
         if(didMountRef.current){
@@ -151,6 +159,7 @@ const Messages = () => {
             setMessages([...loadedMessages]); 
             countUniqueUsers(loadedMessages);
             countUserPosts(loadedMessages);
+            setMessagesLoading(false);
         })
         
     }
@@ -170,7 +179,6 @@ const Messages = () => {
     const addTypingListener = () => {
         let typingUsers = [];
         setTypingUsers([]); // clears typing users after channel change
-        debugger;
         typingDbRef
             .child(channel.id).on('child_added', snap=>{
                 if(snap.key !== user.uid){
@@ -262,6 +270,16 @@ const Messages = () => {
             )
         })
     }
+
+    const displayMessagesSkeleton = loading => {
+        return loading ? (
+            <>
+                {[...Array(10)].map((_, i) =>(
+                    <Skeleton key={i}/>
+                ))}
+            </>
+        ) : null;
+    }
     return (  
         <>
             <MessagesHeader 
@@ -275,12 +293,16 @@ const Messages = () => {
             isChannelStarred = {isChannelStarred}
             />
             <Segment>
+
                 <Comment.Group className={progressBar ? "messages__progress" : "messages"}>
+                   {displayMessagesSkeleton(messagesLoading)} 
                    {searchTerm 
                    ? displayMessages(searchResults) 
                    : displayMessages(messages)}
                     {displayTypingUsers(typingUsers)}
+                    <div ref = {messagesEnd}></div>
                 </Comment.Group>
+               
             </Segment>
             <MessageForm
             messagesDbRef = {messagesDatabaseRef}
