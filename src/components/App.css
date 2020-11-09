@@ -41,6 +41,7 @@ body,
 
 .message__image {
   padding: 1em;
+  height: 100px;
 }
 
 .progress__bar {
@@ -191,4 +192,8 @@ body,
   left: 40px;
   right: 20px;
   background-color: rgba(58, 57, 57, 0.3);
+}
+
+.messagesEnd {
+  height: 10px;
 }
