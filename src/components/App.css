@@ -28,6 +28,10 @@ body,
   z-index: 200;
 }
 
+.emojipikcer {
+  position: absolute;
+}
+
 /* Message.js  */
 
 .message__self {
