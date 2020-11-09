@@ -39,7 +39,9 @@ const Messages = () => {
 
     
     useEffect(()=>{
-        messagesEnd.current.scrollIntoView();
+        if(messagesEnd.current){
+            scrollToBottom();
+    }
     },[channel, messages])
     
     useEffect(()=>{
@@ -103,6 +105,10 @@ const Messages = () => {
         setTimeout(()=>{setSearchLoading(false)}, 250);
     }, [searchTerm])
 
+    const scrollToBottom = () => {
+        messagesEnd.current
+        .scrollIntoView()
+    }
     const handleStar = () => setIsChannelStarred(prevState => !prevState);
 
     const getMessagesRef = () => {
@@ -154,6 +160,7 @@ const Messages = () => {
         setUniqueUsers([]) //same as setMessages
         let loadedMessages = [];
         const ref = getMessagesRef();
+        
         ref.child(channel.id).on('child_added', snap=>{
             loadedMessages.push(snap.val());
             setMessages([...loadedMessages]); 
@@ -161,7 +168,11 @@ const Messages = () => {
             countUserPosts(loadedMessages);
             setMessagesLoading(false);
         })
-        
+
+        if(!loadedMessages.length){
+            console.log('tutaj');
+            setMessagesLoading(false);
+        }
     }
 
 
@@ -300,7 +311,8 @@ const Messages = () => {
                    ? displayMessages(searchResults) 
                    : displayMessages(messages)}
                     {displayTypingUsers(typingUsers)}
-                    <div ref = {messagesEnd}></div>
+                    <div></div>
+                    <div className="messagesEnd" ref = {messagesEnd}></div>
                 </Comment.Group>
                
             </Segment>
