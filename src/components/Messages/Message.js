@@ -1,9 +1,9 @@
-import React from 'react';
+import React, {useState} from 'react';
 import moment from 'moment'
-import {Comment, Image} from 'semantic-ui-react'
+import {Comment, Image, Modal, Button, Icon} from 'semantic-ui-react'
 
 const Message = ({message, user, avatar}) => {
-
+    const [imagePreview, setImagePreview] = useState(false);
     const isOwnMessage = (message, user) => {
         return message.user.id === user.uid ? 'message__self' : '';
     }
@@ -12,7 +12,14 @@ const Message = ({message, user, avatar}) => {
     }
 
     const timeFromNow = (timestamp) => moment(timestamp).fromNow();
+    const openImage = () => {
+        setImagePreview(true);
+    }
+    const closeImage = () => {
+        setImagePreview(false);
+    }
     return ( 
+        <>
         <Comment>
             <Comment.Avatar src = {avatar} />
 
@@ -28,7 +35,12 @@ const Message = ({message, user, avatar}) => {
             {
                 isImage(message) 
                 ? 
-                <Image src={message.image} className="message__image"/>
+                <Image
+                style={{cursor: 'pointer'}}
+                src={message.image} 
+                className="message__image"
+                onClick = {openImage}
+                />
                 :
                 <Comment.Text>
                     {message.content}
@@ -36,6 +48,26 @@ const Message = ({message, user, avatar}) => {
             }
             </Comment.Content>
         </Comment>
+            <Modal
+            basic
+            onClose={closeImage}
+            onOpen={openImage}
+            open={imagePreview}
+            size = "large"
+            closeIcon
+            dimmer = "blurring"
+            centered = "true"
+            >
+                <Modal.Content image>
+                    <Image 
+                    size='huge' 
+                    src={message.image} 
+                    centered ={true}
+                    wrapped />
+                </Modal.Content>
+            </Modal>
+        
+        </>
      );
 }
  
