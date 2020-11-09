@@ -146,6 +146,13 @@ const MessageForm = ({isProgressBarVisible, isPrivateChannel, getMessagesRef}) =
             .child(userId)
             .remove();
     }
+
+    const handleKeyDown = e => {
+        if(e.keyCode === 13)
+        {
+            sendMessage();
+        }
+    }
     const handleKeyUp = () =>{
         if(message){
             setUpTyping(channel, user);
@@ -195,6 +202,7 @@ const MessageForm = ({isProgressBarVisible, isPrivateChannel, getMessagesRef}) =
                 )}
                 <Input
                 onChange = {handleChange}
+                onKeyDown ={handleKeyDown}
                 onKeyUp = {handleKeyUp}
                 value={message}
                 ref = {inputRef}
