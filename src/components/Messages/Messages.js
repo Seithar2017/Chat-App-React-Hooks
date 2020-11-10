@@ -70,10 +70,9 @@ const Messages = () => {
                 })
             }
         
-    }
-        else{
+        }else{
             didMountRef.current = true;
-    }
+        }
     }, [isChannelStarred])
 
     useEffect(()=>{
@@ -82,7 +81,13 @@ const Messages = () => {
             addUserStarsListener(channel.id, user.uid);
         }
         return () => {
+            if(channel&&user){
             messagesDatabaseRef.off();
+            getMessagesRef().child(channel.id).off('child_added');
+            typingDbRef.child(channel.id).off('child_added');
+            typingDbRef.child(channel.id).off('child_removed');
+            connectedRef.off();
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [channel, user])
@@ -170,7 +175,6 @@ const Messages = () => {
         })
 
         if(!loadedMessages.length){
-            console.log('tutaj');
             setMessagesLoading(false);
         }
     }

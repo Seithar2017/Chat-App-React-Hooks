@@ -15,8 +15,13 @@ const Starred = () => {
     const typingDbRef = firebase.database().ref('typing');
     useEffect(()=>{
         if(user){
-        addListeners(user.uid);
-    }
+            addListeners(user.uid);
+        }
+
+        return ()=>{
+            usersDbRef.child(user.uid).child('starred').off('child_added');
+            usersDbRef.child(user.uid).child('starred').off('child_removed');
+        }
     },[])
 
     const setStarredChannels = (data) => {

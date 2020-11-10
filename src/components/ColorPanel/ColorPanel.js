@@ -16,13 +16,13 @@ const ColorPanel = () => {
     const [userColors, setUserColors] = useState([]);
 
     useEffect(()=>{
-        
         if(currentUser){
-        
             addListener(currentUser.uid);
         }
-
-    }, [])
+        return () => {
+            usersDbRef.child(`${currentUser.uid}/colors`).off();
+        }
+    }, [currentUser])
 
     const addListener = userId => {
         let userColors = [];

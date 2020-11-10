@@ -29,6 +29,9 @@ const Channels = () => {
 
         return () => {
             channelsDatabaseRef.off();
+            channels.forEach(channel => {
+                messagesDatabaseRef.child(channel.id).off();
+            })
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])

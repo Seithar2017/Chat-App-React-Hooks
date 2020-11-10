@@ -62,6 +62,14 @@ const MessageForm = ({isProgressBarVisible, isPrivateChannel, getMessagesRef}) =
             })
         }
         )}
+
+        return () => {
+            if(uploadTask !== null){
+                uploadTask.cancel();
+                setUploadTask(null);
+
+            }
+        }
     }, [uploadState, uploadTask])
 
     const sendFileMessage = (fileUrl, messagesDbRef, pathToUpload) => {

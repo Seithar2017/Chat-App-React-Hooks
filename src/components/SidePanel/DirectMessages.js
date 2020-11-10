@@ -24,6 +24,10 @@ const DirectMessages = () => {
                 //registered users
             }
         })}
+
+        return ()=>{
+            usersDbRef.off();
+        }
     },[])
     useEffect(()=>{
         if(currentUser){
@@ -38,6 +42,10 @@ const DirectMessages = () => {
                 
         });
         }
+
+        return ()=>{
+            usersDbRef.off();
+        }
     }, [])
 
 
@@ -50,6 +58,10 @@ const DirectMessages = () => {
         //executed multiple times
         if(currentUser && readyToListen){
             addListeners(currentUser.uid)
+        }
+
+        return ()=>{
+            connectedRef.off();
         }
     }, [readyToListen])
 
