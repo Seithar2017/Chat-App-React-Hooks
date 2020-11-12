@@ -18,7 +18,7 @@ const store = createStore(rootReducer, composeWithDevTools());
 const Root = () => {
     const dispatch = useDispatch();
     const history = useHistory();
-    const isLoading = useSelector(store=> store.user.isLoading);
+    const {isLoading, currentUser} = useSelector(store=> store.user);
     
     useEffect(()=>{
         firebase.auth().onAuthStateChanged(user => {
@@ -31,20 +31,22 @@ const Root = () => {
             }
             else{
                 dispatch(clearUser());
-                // const location = {
-                //     pathname: "/login"
-                // }
-                // history.push(location);
+                const location = {
+                    pathname: "/login"
+                }
+                history.push(location);
             }
         
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [currentUser]);
     return isLoading ? <Spinner /> : (
         // return (
         <Switch>
-            <Route exact path="/" component = {App} />
-            <Route path="/Login" component = {Login} />
+            {currentUser &&
+             <Route exact path="/" component = {App} />}
+             <Route path="/Login" component = {Login} />
+            
             <Route path="/Register" component = {Register} />
         </Switch>
         
