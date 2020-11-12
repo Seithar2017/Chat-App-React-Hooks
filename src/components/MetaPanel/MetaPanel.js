@@ -62,6 +62,7 @@ const MetaPanel = () => {
                 >
                     <Icon name = 'dropdown'/>
                     <Icon name = "user circle"/>
+                    Top posters
                 </Accordion.Title>
                 <Accordion.Content active = {activeIndex === 1}>
                     <List>
