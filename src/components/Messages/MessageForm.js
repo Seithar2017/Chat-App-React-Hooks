@@ -132,7 +132,7 @@ const MessageForm = ({isProgressBarVisible, isPrivateChannel, getMessagesRef}) =
     }
     const getPath = () => {
         if(isPrivateChannel){
-            return `chat/private-${channel.id}`;
+            return `chat/private/${channel.id}`;
         }
         else{
             return 'chat/public';
