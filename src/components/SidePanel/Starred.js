@@ -18,10 +18,13 @@ const Starred = () => {
             addListeners(user.uid);
         }
 
+        
         return ()=>{
             usersDbRef.child(user.uid).child('starred').off('child_added');
             usersDbRef.child(user.uid).child('starred').off('child_removed');
         }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
 
     const setStarredChannels = (data) => {

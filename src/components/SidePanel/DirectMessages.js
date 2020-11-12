@@ -1,8 +1,8 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import { Menu, Icon} from 'semantic-ui-react';
 import firebase from '../../firebase';
-import {setCurrentChannel, setPrivateChannel} from "../../actions";
+import {setPrivateChannel} from "../../actions";
 const DirectMessages = () => {
     const currentUser = useSelector(store => store.user.currentUser);
     const dispatch = useDispatch();
@@ -10,26 +10,26 @@ const DirectMessages = () => {
     const [lastUser, setLastUser] = useState(null);
     const [readyToListen, setReadyToListen] = useState(false);
     const [activeChannel, setActiveChannel] = useState(null);
-    const usersDbRef = firebase.database().ref('users');
-    const connectedRef = firebase.database().ref('.info/connected');
-    const presenceDbRef = firebase.database().ref('presence');
     
     useEffect(()=>{
-        if(currentUser){
+        const usersDbRef = firebase.database().ref('users');
+        if(currentUser && lastUser === null){
             usersDbRef.limitToLast(1).on('child_added', snap => {
-            if(lastUser === null){
                 setLastUser(snap.val());
                 //the value of lastUser is necessary to check when
                 //the program has finished loading all currently
                 //registered users
-            }
+            
         })}
 
         return ()=>{
             usersDbRef.off();
         }
-    },[])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[currentUser])
+
     useEffect(()=>{
+        const usersDbRef = firebase.database().ref('users');
         if(currentUser){
             let loadedUsers = [];
             usersDbRef.on("child_added", snap => {
@@ -46,10 +46,12 @@ const DirectMessages = () => {
         return ()=>{
             usersDbRef.off();
         }
-    }, [])
+    }, [currentUser])
 
 
     useEffect(()=>{
+        const connectedRef = firebase.database().ref('.info/connected');
+        const presenceDbRef = firebase.database().ref('presence');
         //addListeners function suppose to run only after all of the users from the
         //firebase database are loaded into users state
 
@@ -57,20 +59,7 @@ const DirectMessages = () => {
         //changed only once, which ensures that this effect won't be 
         //executed multiple times
         if(currentUser && readyToListen){
-            addListeners(currentUser.uid)
-        }
-
-        return ()=>{
-            connectedRef.off();
-        }
-    }, [readyToListen])
-
-    if(users.length>0 && lastUser !== null && !readyToListen){
-        if(users[users.length-1].uid === lastUser.uid){
-        setReadyToListen(true);
-    }}
-
-    const addListeners = currentUserUid => {
+                const addListeners = currentUserUid => {
 
         //1st listener
         //while logging into the app, adds user's ID into database >> presence
@@ -102,6 +91,22 @@ const DirectMessages = () => {
             }
         })
     }
+
+            addListeners(currentUser.uid)
+        }
+
+        return ()=>{
+            connectedRef.off();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser, readyToListen])
+
+    if(users.length>0 && lastUser !== null && !readyToListen){
+        if(users[users.length-1].uid === lastUser.uid){
+        setReadyToListen(true);
+    }}
+
+
 
     const addStatusToUser = (userId, connected = true) => {
         const updatedUsers = users.reduce((acc, user) => {
@@ -150,7 +155,9 @@ const DirectMessages = () => {
 
                 @ {user.name}
             </Menu.Item>
-        )})
+        )
+        else return null;
+        })
     }
     return ( 
         <Menu.Menu className="menu">

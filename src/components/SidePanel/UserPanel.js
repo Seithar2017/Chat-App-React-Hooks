@@ -12,45 +12,43 @@ const UserPanel = () => {
     const [croppedImage, setCroppedImage] = useState('');
     const [blob, setBlob] = useState('');
     const [uploadedCroppedImage, setUploadedCroppedImage] = useState('');
-    const [metadata, setMetadata] = useState({
-        contentType: 'image/jpeg'
-    })
     const avatarEditor = useRef(null);
     const storageRef = firebase.storage().ref();
     const userRef = firebase.auth().currentUser;
-    const usersDbRef = firebase.database().ref('users');
-
+    const metadata = {contentType: 'image/jpeg'};
     useEffect(()=>{     
+        const userRef = firebase.auth().currentUser;
+        const usersDbRef = firebase.database().ref('users');
         if(uploadedCroppedImage){
+            const changeAvatar = () => {
+                userRef
+                    .updateProfile({
+                        photoURL: uploadedCroppedImage
+                    })
+                    .then(()=>{
+                        closeModal();
+                    })
+                    .catch(err=>{
+                        console.error(err);
+                        
+                    })
+        
+                usersDbRef
+                .child(user.uid)
+                .update({avatar: uploadedCroppedImage})
+                .then(()=>{
+                })
+                .catch(err => {
+                    console.error(err);
+                    
+                })
+            }
             changeAvatar();
         }
-    }, [uploadedCroppedImage])
+        
+    }, [uploadedCroppedImage, user.uid])
 
-    const changeAvatar = () => {
-        userRef
-            .updateProfile({
-                photoURL: uploadedCroppedImage
-            })
-            .then(()=>{
-                console.log('PhotoURL updated');
-                closeModal();
-            })
-            .catch(err=>{
-                console.error(err);
-                
-            })
 
-        usersDbRef
-        .child(user.uid)
-        .update({avatar: uploadedCroppedImage})
-        .then(()=>{
-            console.log('User avatar updated');
-        })
-        .catch(err => {
-            console.error(err);
-            
-        })
-    }
     if(!user){
         return <p>You are currently signed out. Would you like to <a href="http://localhost:3000/login">log in?</a></p>
     }

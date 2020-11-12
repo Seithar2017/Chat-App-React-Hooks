@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
 import moment from 'moment'
-import {Comment, Image, Modal, Button, Icon} from 'semantic-ui-react'
+import {Comment, Image, Modal} from 'semantic-ui-react'
 
-const Message = ({message, user, avatar}) => {
+const Message = ({message, user, avatar}) => {    
     const [imagePreview, setImagePreview] = useState(false);
     const isOwnMessage = (message, user) => {
         return message.user.id === user.uid ? 'message__self' : '';
@@ -22,7 +22,6 @@ const Message = ({message, user, avatar}) => {
         <>
         <Comment>
             <Comment.Avatar src = {avatar} />
-
             <Comment.Content className = {isOwnMessage(message, user)}>
 
                 <Comment.Author as ="a">
@@ -56,7 +55,7 @@ const Message = ({message, user, avatar}) => {
             size = "large"
             closeIcon
             dimmer = "blurring"
-            centered = "true"
+            centered = {true}
             >
                 <Modal.Content image>
                     <Image 

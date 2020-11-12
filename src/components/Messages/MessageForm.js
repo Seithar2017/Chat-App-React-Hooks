@@ -70,6 +70,7 @@ const MessageForm = ({isProgressBarVisible, isPrivateChannel, getMessagesRef}) =
 
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [uploadState, uploadTask])
 
     const sendFileMessage = (fileUrl, messagesDbRef, pathToUpload) => {

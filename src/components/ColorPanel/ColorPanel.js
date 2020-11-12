@@ -16,23 +16,25 @@ const ColorPanel = () => {
     const [userColors, setUserColors] = useState([]);
 
     useEffect(()=>{
+        const usersRef = firebase.database().ref('users');
         if(currentUser){
+            const addListener = userId => {
+                let userColors = [];
+                usersRef
+                    .child(`${userId}/colors`)
+                    .on('child_added', snap => {
+                        userColors.unshift(snap.val());
+                        setUserColors([...userColors])
+                    })
+            }
             addListener(currentUser.uid);
         }
         return () => {
-            usersDbRef.child(`${currentUser.uid}/colors`).off();
+            usersRef.child(`${currentUser.uid}/colors`).off();
         }
     }, [currentUser])
 
-    const addListener = userId => {
-        let userColors = [];
-        usersDbRef
-            .child(`${userId}/colors`)
-            .on('child_added', snap => {
-                userColors.unshift(snap.val());
-                setUserColors([...userColors])
-            })
-    }
+
 
     const saveColors = () => {
         usersDbRef

@@ -42,9 +42,10 @@ const Messages = () => {
         if(messagesEnd.current){
             scrollToBottom();
     }
-    },[channel, messages])
+    },[channel, messages, typingUsers])
     
     useEffect(()=>{
+        const usersDatabaseRef = firebase.database().ref('users');
         if(didMountRef.current){
             if(isChannelStarred){
                 usersDatabaseRef
@@ -59,7 +60,7 @@ const Messages = () => {
                     }
                 })
             }
-            else{
+            else if(!isChannelStarred){
                 usersDatabaseRef
                 .child(`${user.uid}/starred`)
                 .child(channel.id)
@@ -73,6 +74,7 @@ const Messages = () => {
         }else{
             didMountRef.current = true;
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isChannelStarred])
 
     useEffect(()=>{
@@ -101,14 +103,14 @@ const Messages = () => {
         const channelMessages = [...messages];
         const regex = new RegExp(searchTerm, 'gi');
         const searchResults = channelMessages.reduce((acc, message) =>{
-            if(message.content && message.content.match(regex) || message.user.name.match(regex)) {
+            if((message.content && message.content.match(regex) )|| message.user.name.match(regex)) {
                 acc.push(message)
             }
             return acc;
         }, []);
         setSearchResults(searchResults);
         setTimeout(()=>{setSearchLoading(false)}, 250);
-    }, [searchTerm])
+    }, [searchTerm, messages])
 
     const scrollToBottom = () => {
         messagesEnd.current
@@ -137,7 +139,7 @@ const Messages = () => {
     const getCurrentAvatar = (message) =>{
         const messageUserId = message.user.id;
         let avatar = '';
-        usersDatabaseRef.child(messageUserId).on('value', snap =>{
+        usersDatabaseRef.child(messageUserId).once('value', snap =>{
             avatar = snap.val().avatar;
         })
         return avatar;
@@ -238,6 +240,7 @@ const Messages = () => {
         if(messages.length > 0 ){
             const msg = messages.map(message=>{
                 if(message.onChannel === channel.id){
+                    
                     return (
                         <Message
                             key={message.timestamp}
@@ -246,7 +249,7 @@ const Messages = () => {
                             avatar = {getCurrentAvatar(message)}
                         />
                     )
-                }   
+                }else return null;  
             })
             return msg;
         }
@@ -271,6 +274,7 @@ const Messages = () => {
             if(user.onChannel === channel.id){
                 reducedUsers.push(user.name)
             }
+            return null;
         })
 
         return reducedUsers.length;

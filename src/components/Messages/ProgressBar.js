@@ -1,4 +1,4 @@
-import React, {usteState} from 'react';
+import React from 'react';
 import {Progress, Transition } from 'semantic-ui-react';
 const ProgressBar = ({uploadState, percentUploaded}) => {
 
