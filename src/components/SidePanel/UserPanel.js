@@ -1,8 +1,9 @@
 import React, {useState, useRef, useEffect} from 'react';
 import {Grid, Header, Icon, Dropdown, Image, Input,  Modal, Button} from 'semantic-ui-react';
 import firebase from '../../firebase';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import AvatarEditor from 'react-avatar-editor';
+import {clearUser} from '../../actions';
 
 const UserPanel = () => {
     const user = useSelector(store => store.user.currentUser);
@@ -16,10 +17,11 @@ const UserPanel = () => {
     const storageRef = firebase.storage().ref();
     const userRef = firebase.auth().currentUser;
     const metadata = {contentType: 'image/jpeg'};
+    const dispatch = useDispatch();
     useEffect(()=>{     
         const userRef = firebase.auth().currentUser;
         const usersDbRef = firebase.database().ref('users');
-        if(uploadedCroppedImage){
+        if(uploadedCroppedImage && user){
             const changeAvatar = () => {
                 userRef
                     .updateProfile({
@@ -46,12 +48,10 @@ const UserPanel = () => {
             changeAvatar();
         }
         
-    }, [uploadedCroppedImage, user.uid])
+    }, [uploadedCroppedImage, user])
 
 
-    if(!user){
-        return <p>You are currently signed out. Would you like to <a href="http://localhost:3000/login">log in?</a></p>
-    }
+    
 
     const openModal = () => setModal(true);
     const closeModal = () => {
@@ -82,10 +82,14 @@ const UserPanel = () => {
     ];
 
     const handleSignout = () => {
+        firebase.database().ref('presence').child(user.uid).remove();
         firebase
             .auth()
             .signOut()
-            .then(()=> console.log('Signed Out!'))
+            .then(()=> {
+                dispatch(clearUser())
+            });
+
     }
 
     const handleChange = e => {
