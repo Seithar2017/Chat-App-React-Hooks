@@ -19,7 +19,6 @@ const Root = () => {
     const dispatch = useDispatch();
     const history = useHistory();
     const {isLoading, currentUser} = useSelector(store=> store.user);
-    
     useEffect(()=>{
         firebase.auth().onAuthStateChanged(user => {
             if(user){
@@ -41,12 +40,9 @@ const Root = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser]);
     return isLoading ? <Spinner /> : (
-        // return (
         <Switch>
-            {currentUser &&
-             <Route exact path="/" component = {App} />}
-             <Route path="/Login" component = {Login} />
-            
+            {currentUser && <Route exact path="/" component = {App} />}
+            <Route path="/Login" component = {Login} />
             <Route path="/Register" component = {Register} />
         </Switch>
         
